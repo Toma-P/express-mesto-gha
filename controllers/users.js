@@ -78,5 +78,5 @@ module.exports = {
   getUsers,
   getUser,
   updateUserInfo,
-  updateUserAvatar
+  updateUserAvatar,
 };

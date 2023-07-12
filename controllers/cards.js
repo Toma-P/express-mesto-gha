@@ -33,7 +33,12 @@ const deleteCard = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      res.status(400).send(err.message);
+      if (err.name === 'CastError') {
+        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+        return;
+      }
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
+      res.send(err.name);
     });
 };
 
@@ -70,5 +75,5 @@ module.exports = {
   getCards,
   deleteCard,
   likeCard,
-  dislikeCard
+  dislikeCard,
 };
