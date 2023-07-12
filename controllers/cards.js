@@ -29,12 +29,15 @@ const getCards = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => {
+      res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+    })
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
@@ -44,12 +47,15 @@ const deleteCard = (req, res) => {
 
 const likeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
+    .orFail(() => {
+      res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+    })
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
@@ -58,12 +64,15 @@ const likeCard = (req, res) => {
 
 const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
+    .orFail(() => {
+      res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+    })
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });

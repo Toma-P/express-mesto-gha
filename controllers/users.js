@@ -31,12 +31,15 @@ const getUser = (req, res) => {
   const { userId } = req.params;
 
   User.findById(userId)
+    .orFail(() => {
+      res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+    })
     .then((user) => {
       res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
