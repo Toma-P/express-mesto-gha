@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/errors');
 const User = require('../models/user');
 
@@ -6,11 +7,11 @@ const createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then((user) => {
-      res.send(user);
+      res.status(201).send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      if (err instanceof mongoose.Error.ValidationError) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
@@ -32,13 +33,13 @@ const getUser = (req, res) => {
 
   User.findById(userId)
     .orFail(() => {
-      res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+      res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' });
     })
     .then((user) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof mongoose.Error.CastError) {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
         return;
       }
@@ -53,8 +54,8 @@ const updateUserInfo = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      if (err instanceof mongoose.Error.ValidationError) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
@@ -68,8 +69,8 @@ const updateUserAvatar = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      if (err instanceof mongoose.Error.ValidationError) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля' });
         return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
