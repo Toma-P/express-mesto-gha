@@ -32,15 +32,9 @@ const updateAvatarValidate = celebrate({
   }),
 });
 
-const currentUserIdValidate = celebrate({
+const userIdValidate = celebrate({
   params: Joi.object().keys({
     userId: Joi.string().length(24).hex(),
-  }),
-});
-
-const userIdValidate = celebrate({
-  body: Joi.object().keys({
-    _id: Joi.string().length(24).hex(),
   }),
 });
 
@@ -62,7 +56,6 @@ module.exports = {
   authInfoValidation,
   updateUserInfoValidate,
   updateAvatarValidate,
-  currentUserIdValidate,
   userIdValidate,
   createCardValidate,
   cardIdValidate,

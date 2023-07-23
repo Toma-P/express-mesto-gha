@@ -93,6 +93,7 @@ const getUser = (req, res, next) => {
       next(err);
     });
 };
+
 const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
