@@ -30,25 +30,21 @@ const getCards = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .orFail(() => {
-      next(new NotFoundError('Карточка с указанным _id не найдена'));
-    })
     .then((card) => {
-      if (card.owner.toString() === req.user._id) {
-        Card.deleteOne(card)
-          .then(() => res.send(card));
-      } else {
+      if (!card) {
+        throw new NotFoundError('Карточка с указанным _id не найдена');
+      }
+      if (card.owner.toString() !== req.user._id) {
         throw new ForbiddenError('Нельзя удалять чужие карточки');
       }
-    })
-    .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
