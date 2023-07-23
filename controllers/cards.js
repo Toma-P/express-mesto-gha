@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
-const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/errors');
-const Card = require('../models/card');
 
-const createCard = (req, res) => {
+const Card = require('../models/card');
+const BadRequestError = require('../utils/errors/BadRequestError');
+const NotFoundError = require('../utils/errors/NotFoundError');
+const ForbiddenError = require('../utils/errors/ForbiddenError');
+
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
@@ -11,72 +14,73 @@ const createCard = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании карточки' });
-        return;
+        next(new BadRequestError('Переданы некорректные данные при создании карточки'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
       res.send(cards);
     })
-    .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-    });
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
-      res.status(NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена' });
+      next(new NotFoundError('Карточка с указанным _id не найдена'));
+    })
+    .then((card) => {
+      if (card.owner.toString() === req.user._id) {
+        Card.deleteOne(card)
+          .then(() => res.send(card));
+      } else {
+        throw new ForbiddenError('Нельзя удалять чужие карточки');
+      }
     })
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-        return;
+        next(new BadRequestError('Переданы некорректные данные'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
-      res.send(err.name);
+      next(err);
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .orFail(() => {
-      res.status(NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
+      next(new NotFoundError('Передан несуществующий _id карточки'));
     })
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для постановки лайка' });
-        return;
+        next(new BadRequestError('Переданы некорректные данные для постановки лайка'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .orFail(() => {
-      res.status(NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
+      next(new NotFoundError('Передан несуществующий _id карточки'));
     })
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для снятия лайка' });
-        return;
+        next(new BadRequestError('Переданы некорректные данные для снятия лайка'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
