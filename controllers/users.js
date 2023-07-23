@@ -17,15 +17,13 @@ const createUser = (req, res, next) => {
   } = req.body;
 
   bcrypt.hash(password, 10)
-    .then((hash) => {
-      User.create({
-        name,
-        about,
-        avatar,
-        email,
-        password: hash,
-      });
-    })
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
     .then(() => {
       res.status(201).send({
         name, about, avatar, email,
@@ -64,10 +62,8 @@ const getUsers = (req, res, next) => {
     .catch(next);
 };
 
-const getUser = (req, res, next) => {
-  const { userId } = req.params;
-
-  User.findById(userId)
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
     .orFail(() => {
       next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
@@ -82,6 +78,21 @@ const getUser = (req, res, next) => {
     });
 };
 
+const getUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .orFail(() => {
+      next(new NotFoundError('Пользователь по указанному _id не найден'));
+    })
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        next(new BadRequestError('Переданы некорректные данные'));
+      }
+      next(err);
+    });
+};
 const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
@@ -114,6 +125,7 @@ module.exports = {
   createUser,
   getUsers,
   getUser,
+  getCurrentUser,
   updateUserInfo,
   updateUserAvatar,
   login,

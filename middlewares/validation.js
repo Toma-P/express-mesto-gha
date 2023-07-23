@@ -32,10 +32,28 @@ const updateAvatarValidate = celebrate({
   }),
 });
 
+const currentUserIdValidate = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().length(24).hex().required(),
+  }),
+});
+
+const userIdValidate = celebrate({
+  body: Joi.object().keys({
+    _id: Joi.string().length(24).hex().required(),
+  }),
+});
+
 const createCardValidate = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     link: Joi.string().required().pattern(regExp),
+  }),
+});
+
+const cardIdValidate = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().hex().length(24).required(),
   }),
 });
 
@@ -44,5 +62,8 @@ module.exports = {
   authInfoValidation,
   updateUserInfoValidate,
   updateAvatarValidate,
+  currentUserIdValidate,
+  userIdValidate,
   createCardValidate,
+  cardIdValidate,
 };
