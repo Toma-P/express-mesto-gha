@@ -32,11 +32,13 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
-      } else if (err.code === 11000) {
-        next(new ConflictError('Пользователь с таким email уже существует'));
-      } else {
-        next(err);
+        return;
       }
+      if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким email уже существует'));
+        return;
+      }
+      next(err);
     });
 };
 
@@ -73,6 +75,7 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
+        return;
       }
       next(err);
     });
@@ -89,6 +92,7 @@ const getUser = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
+        return;
       }
       next(err);
     });
@@ -103,6 +107,7 @@ const updateUserInfo = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+        return;
       }
       next(err);
     });
@@ -117,6 +122,7 @@ const updateUserAvatar = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+        return;
       }
       next(err);
     });
